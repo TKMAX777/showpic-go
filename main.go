@@ -29,9 +29,17 @@ func main() {
 			ev := Screen.PollEvent()
 			switch ev := ev.(type) {
 			case *tcell.EventKey:
-				KeyEvent <- ev
+				switch ev.Key() {
+				case tcell.KeyEscape:
+					// 終了
+					Screen.Fini()
+					os.Exit(0)
+				default:
+					KeyEvent <- ev
+				}
 			case *tcell.EventResize:
 				Screen.Sync()
+
 			}
 		}
 	}()
@@ -67,7 +75,6 @@ Arg:
 		}
 	}
 
-mainloop:
 	for i := 0; i < len(args); i++ {
 		var arg = args[i]
 
@@ -119,9 +126,7 @@ mainloop:
 			select {
 			case Key := <-KeyEvent:
 				switch Key.Key() {
-				case tcell.KeyEscape:
-					// 終了
-					break mainloop
+
 				case tcell.KeyEnter:
 					// 次の写真へ
 					PutRow = 0
