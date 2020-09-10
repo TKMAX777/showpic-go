@@ -1,18 +1,32 @@
 package main
 
-import "io"
+import (
+	"image"
+	"io"
+)
 
 //ImageReader wrap io.Reader
 type ImageReader struct {
-	reader io.Reader
-	title  string
+	Title  string
+	imgSrc image.Image
+	imgDst *image.RGBA
+	rctSrc image.Rectangle
+	zoom   int
+	rate   float64
 }
 
-func (imgr *ImageReader) Read(p []byte) (n int, err error) {
-	return imgr.reader.Read(p)
+// Pos put position settings
+type Pos struct {
+	X int
+	Y int
 }
 
 // New initialize struct
-func (imgr *ImageReader) New(r io.Reader) {
-	imgr.reader = r
+func (imgr *ImageReader) New(r io.Reader) error {
+	// 画像を解析
+	imgSrc, _, err := image.Decode(r)
+	imgr.imgSrc = imgSrc
+	imgr.rctSrc = imgSrc.Bounds()
+
+	return err
 }

@@ -41,7 +41,7 @@ func Init() {
 
 // Putln output put data to screen
 func Putln(s tcell.Screen, style tcell.Style, d ...interface{}) {
-	Puts(s, style, 1, PutRow, fmt.Sprintf("%v", d...))
+	Puts(s, style, 1, PutRow, fmt.Sprint(d...))
 	PutRow++
 }
 
@@ -49,7 +49,7 @@ func Putln(s tcell.Screen, style tcell.Style, d ...interface{}) {
 func Puts(s tcell.Screen, style tcell.Style, x, y int, d ...interface{}) (int, int) {
 	var i int = 0
 
-	var str string = fmt.Sprintf("%v", d...)
+	var str string = fmt.Sprint(d...)
 	var deferred []rune
 
 	var dwidth = 0

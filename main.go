@@ -22,28 +22,14 @@ func init() {
 func main() {
 
 	// チャネルの生成
-	var quit = make(chan struct{})
-	var next = make(chan bool)
-	var resize = make(chan bool)
-	var back = make(chan bool)
+	var KeyEvent = make(chan *tcell.EventKey)
 
 	go func() {
 		for {
 			ev := Screen.PollEvent()
 			switch ev := ev.(type) {
 			case *tcell.EventKey:
-				switch ev.Key() {
-				case tcell.KeyEscape:
-					close(quit)
-					return
-				case tcell.KeyEnter:
-					next <- true
-				case tcell.KeyCtrlL:
-					Screen.Sync()
-					resize <- true
-				case tcell.KeyBackspace, tcell.KeyBackspace2:
-					back <- true
-				}
+				KeyEvent <- ev
 			case *tcell.EventResize:
 				Screen.Sync()
 			}
@@ -84,40 +70,101 @@ Arg:
 mainloop:
 	for i := 0; i < len(args); i++ {
 		var arg = args[i]
-	set:
+
+		var delta = Pos{}
+
+		var ZoomRate float64 = 1
+		var imgr ImageReader
+
+		var init = true
+		var zoom = true
+
 		f, err := os.Open(arg)
 		if err != nil {
 			continue
 		}
-		Screen.Clear()
 
-		var imgr ImageReader
-		imgr.New(f)
-
-		imgr.SetTitle(arg)
-
-		// 描画
-		err = imgr.Set(W, H)
+		err = imgr.New(f)
 		if err != nil {
+			f.Close()
 			continue
 		}
+		f.Close()
+
+	set:
+		Screen.Clear()
+
+		if init {
+			// get suit rate
+			imgr.getSuitRate(W, H)
+			init = false
+		}
+
+		imgr.Title = arg
+
+		if zoom {
+			imgr.Zoom(ZoomRate)
+			zoom = false
+		}
+
+		// 描画
+		imgr.Set(delta)
+		imgr.SetTitle(ZoomRate)
 
 		Screen.Show()
+
 	subloop:
 		for {
+
 			select {
-			case <-quit:
-				break mainloop
-			case <-next:
-				PutRow = 0
-				break subloop
-			case <-resize:
-				goto set
-			case <-back:
-				if i > 0 {
-					i -= 2
+			case Key := <-KeyEvent:
+				switch Key.Key() {
+				case tcell.KeyEscape:
+					// 終了
+					break mainloop
+				case tcell.KeyEnter:
+					// 次の写真へ
+					PutRow = 0
 					break subloop
+				case tcell.KeyCtrlL:
+					// 再読み込み
+					Screen.Sync()
+					goto set
+				case tcell.KeyCtrlI:
+					// 初期化
+					init = true
+					ZoomRate = 1
+					goto set
+				case tcell.KeyBackspace, tcell.KeyBackspace2:
+					// 一つ前の写真へ
+					if i > 0 {
+						i -= 2
+						break subloop
+					}
+				case tcell.KeyUp:
+					delta.Y += 3
+					goto set
+				case tcell.KeyDown:
+					delta.Y -= 3
+					goto set
+				case tcell.KeyLeft:
+					delta.X += 3
+					goto set
+				case tcell.KeyRight:
+					delta.X -= 3
+					goto set
 				}
+				switch Key.Rune() {
+				case '+':
+					ZoomRate += 0.5
+					zoom = true
+					goto set
+				case '-':
+					ZoomRate -= 0.5
+					zoom = true
+					goto set
+				}
+
 			case <-time.After(time.Millisecond * 50):
 			}
 		}
