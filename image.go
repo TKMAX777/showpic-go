@@ -120,7 +120,7 @@ func (imgr *ImageReader) getSuitRate(sW, sH int) float64 {
 			default:
 				// 横幅を基準に設定
 				sW = int(width + 1)
-				rate = float64(sW/rctSrc.Dx()) / 2
+				rate = float64(sW) / float64(rctSrc.Dx()) / 2
 
 				sH = int(float64(rctSrc.Dy()) * rate)
 
@@ -141,6 +141,8 @@ func (imgr *ImageReader) getSuitRate(sW, sH int) float64 {
 
 						rate = float64(sH) / float64(rctSrc.Dy())
 					}
+					PutRow = 1
+					Putln(Screen, tcell.StyleDefault, "rate: ", rate)
 				}
 			}
 		default:
@@ -160,6 +162,7 @@ func (imgr *ImageReader) getSuitRate(sW, sH int) float64 {
 	}
 
 	imgr.rate = rate
+
 	return rate
 }
 
