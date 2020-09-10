@@ -141,8 +141,7 @@ func (imgr *ImageReader) getSuitRate(sW, sH int) float64 {
 
 						rate = float64(sH) / float64(rctSrc.Dy())
 					}
-					PutRow = 1
-					Putln(Screen, tcell.StyleDefault, "rate: ", rate)
+
 				}
 			}
 		default:
