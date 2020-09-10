@@ -15,12 +15,15 @@ import (
 
 // Set set screen pixcels
 func (imgr ImageReader) Set(sW, sH int) (err error) {
+	// 画像を解析
 	img, _, err := image.Decode(&imgr)
 	if err != nil {
 		return err
 	}
-
 	var rctSrc = img.Bounds()
+
+	// 画面の大きさを取得
+	width, height := Screen.Size()
 
 	{
 		// 100以上の大きさを受け付けない
@@ -28,9 +31,8 @@ func (imgr ImageReader) Set(sW, sH int) (err error) {
 			sW, sH = 0, 0
 		}
 
-		sH *= 2
-
 		// 画面の外枠に対する大きさを指定する
+		// 一マスにつき高さの方が2倍大きいことに注意する。
 		switch sW {
 		case 0:
 			switch sH {
@@ -39,53 +41,66 @@ func (imgr ImageReader) Set(sW, sH int) (err error) {
 				// 画像の大きさで適宜大きさを画面に合わせる
 				switch {
 				case rctSrc.Dx() <= rctSrc.Dy():
-					_, height := Screen.Size()
 					switch imgr.title {
 					case "":
-						sH = int(height+1) * 2
+						// タイトル無し
+						// 縦幅を基準に設定
+						sH = int(height + 1)
+						sW = int(float64(rctSrc.Dx()) / float64(rctSrc.Dy()) * float64(sH*2))
+
+						// 横幅がはみ出てしまう場合
+						if width+1 < sW {
+							sW = int(width + 1)
+							sH = int(float64(rctSrc.Dy())/float64(rctSrc.Dx())*float64(sW)) / 2
+						}
 					default:
-						sH = int(height) * 2
+						// タイトル有り
+						// 縦幅を基準に設定
+						sH = int(height)
+						sW = int(float64(rctSrc.Dx()) / float64(rctSrc.Dy()) * float64(sH*2))
+
+						// 横幅がはみ出てしまう場合
+						if width < sW {
+							sW = int(width)
+							sH = int(float64(rctSrc.Dy())/float64(rctSrc.Dx())*float64(sW)) / 2
+						}
 					}
-					sW = int(float64(rctSrc.Dx()) / float64(rctSrc.Dy()) * float64(sH))
 				default:
-					width, height := Screen.Size()
+					// 横幅を基準に設定
 					sW = int(width + 1)
-					sH = int(float64(rctSrc.Dy())/float64(rctSrc.Dx())*float64(sW)) * 2
+					sH = int(float64(rctSrc.Dy())/float64(rctSrc.Dx())*float64(sW)) / 2
 					switch imgr.title {
 					case "":
+						// タイトル無し
+						// 縦幅がはみ出てしまう場合
 						if height+1 < sH {
-							sH = int(height+1) * 2
-							sW = int(float64(rctSrc.Dx()) / float64(rctSrc.Dy()) * float64(sH))
+							sH = int(height + 1)
+							sW = int(float64(rctSrc.Dx()) / float64(rctSrc.Dy()) * float64(sH*2))
 						}
 					default:
+						// タイトル有り
+						// 縦幅がはみ出てしまう場合
 						if height < sH {
-							sH = int(height) * 2
-							sW = int(float64(rctSrc.Dx()) / float64(rctSrc.Dy()) * float64(sH))
+							sH = int(height)
+							sW = int(float64(rctSrc.Dx()) / float64(rctSrc.Dy()) * float64(sH*2))
 						}
-
 					}
-
 				}
-
 			default:
 				// 縦幅のみ指定のある場合
-				_, height := Screen.Size()
 				switch imgr.title {
 				case "":
 					sH = int(float64(height+1) * float64(sH) / 100.0)
 				default:
 					sH = int(float64(height) * float64(sH) / 100.0)
 				}
-				sW = int(float64(rctSrc.Dx()) / float64(rctSrc.Dy()) * float64(sH))
+				sW = int(float64(rctSrc.Dx()) / float64(rctSrc.Dy()) * float64(sH*2))
 			}
 		default:
 			// 横幅のみ指定のある場合
-			width, _ := Screen.Size()
 			sW = int(float64(width+1) * float64(sW) / 100.0)
-			sH = int(float64(rctSrc.Dy()) / float64(rctSrc.Dx()) * float64(sW))
+			sH = int(float64(rctSrc.Dy())/float64(rctSrc.Dx())*float64(sW)) / 2
 		}
-
-		sH /= 2
 
 	}
 
@@ -96,8 +111,6 @@ func (imgr ImageReader) Set(sW, sH int) (err error) {
 
 	// 画像の解析
 	var bounds = imgDst.Bounds()
-
-	width, height := Screen.Size()
 
 	var minX, maxX int = bounds.Min.X, bounds.Max.X
 	var minY, maxY int = bounds.Min.Y, bounds.Max.Y
