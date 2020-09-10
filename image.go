@@ -6,6 +6,9 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 
+	_ "golang.org/x/image/tiff"
+	_ "golang.org/x/image/webp"
+
 	"github.com/gdamore/tcell"
 	"golang.org/x/image/draw"
 )
@@ -111,13 +114,16 @@ func (imgr ImageReader) Set(sW, sH int) (err error) {
 			// 色をつけるオブジェクトの作成
 			var st = tcell.StyleDefault
 
+			// 16bitから24bitに変換
+			const rate = float64(256) / float64(65536)
+
 			// 色を取得
 			r, g, b, _ := imgDst.RGBAAt(x, y).RGBA()
 
 			st = st.Background(tcell.NewRGBColor(
-				int32(float64(r)*float64(256)/float64(65536)),
-				int32(float64(g)*float64(256)/float64(65536)),
-				int32(float64(b)*float64(256)/float64(65536)),
+				int32(float64(r)*rate),
+				int32(float64(g)*rate),
+				int32(float64(b)*rate),
 			))
 
 			var X = (width-bounds.Max.X+bounds.Min.X)/2 + x
