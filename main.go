@@ -20,6 +20,7 @@ func init() {
 }
 
 func main() {
+	defer Screen.Fini()
 
 	// チャネルの生成
 	var KeyEvent = make(chan *tcell.EventKey)
@@ -57,10 +58,13 @@ Arg:
 				"pic PICTURENAME(S)\n" +
 				"Esc to escape view mode\n" +
 				"Enter to view next picture\n" +
+				"Ctrl + I initialize settings\n" +
+				"Ctrl + L Reload picture\n" +
 				"Options:\n" +
 				"-h	Set height of the displayed picture[%%]\n" +
 				"-w	Set width of the displayed picture[%%]\n",
 			)
+			Screen.Fini()
 			os.Exit(0)
 		case "-w":
 			if len(args) > i {
