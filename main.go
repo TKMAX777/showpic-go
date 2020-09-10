@@ -21,10 +21,11 @@ func init() {
 
 func main() {
 
-	// 停止チャネルの生成
+	// チャネルの生成
 	var quit = make(chan struct{})
 	var next = make(chan bool)
 	var resize = make(chan bool)
+	var back = make(chan bool)
 
 	go func() {
 		for {
@@ -40,6 +41,8 @@ func main() {
 				case tcell.KeyCtrlL:
 					Screen.Sync()
 					resize <- true
+				case tcell.KeyBackspace, tcell.KeyBackspace2:
+					back <- true
 				}
 			case *tcell.EventResize:
 				Screen.Sync()
@@ -79,7 +82,8 @@ Arg:
 	}
 
 mainloop:
-	for _, arg := range args {
+	for i := 0; i < len(args); i++ {
+		var arg = args[i]
 	set:
 		f, err := os.Open(arg)
 		if err != nil {
@@ -109,6 +113,11 @@ mainloop:
 				break subloop
 			case <-resize:
 				goto set
+			case <-back:
+				if i > 0 {
+					i -= 2
+					break subloop
+				}
 			case <-time.After(time.Millisecond * 50):
 			}
 		}
