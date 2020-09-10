@@ -138,7 +138,9 @@ Arg:
 				case tcell.KeyCtrlI:
 					// 初期化
 					init = true
+					zoom = true
 					ZoomRate = 1
+					delta = Pos{}
 					goto set
 				case tcell.KeyBackspace, tcell.KeyBackspace2:
 					// 一つ前の写真へ
