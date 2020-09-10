@@ -25,6 +25,9 @@ type Pos struct {
 func (imgr *ImageReader) New(r io.Reader) error {
 	// 画像を解析
 	imgSrc, _, err := image.Decode(r)
+	if err != nil {
+		return err
+	}
 	imgr.imgSrc = imgSrc
 	imgr.rctSrc = imgSrc.Bounds()
 
