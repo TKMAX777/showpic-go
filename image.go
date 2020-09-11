@@ -11,7 +11,7 @@ import (
 	_ "golang.org/x/image/webp"
 
 	"github.com/gdamore/tcell"
-	"golang.org/x/image/draw"
+	"github.com/nfnt/resize"
 )
 
 // Set set screen pixcels
@@ -28,6 +28,18 @@ func (imgr ImageReader) Set(delta Pos) {
 		titleDel = 1
 	}
 
+	var RGBAfunc = func(img image.Image) func(x, y int) (r, g, b, a uint32) {
+		switch img0 := img.(type) {
+		case *image.RGBA:
+			return func(x, y int) (r, g, b, a uint32) { return img0.RGBAAt(x, y).RGBA() }
+		case *image.NRGBA:
+			return func(x, y int) (r, g, b, a uint32) { return img0.NRGBAAt(x, y).RGBA() }
+		case *image.YCbCr:
+			return func(x, y int) (r, g, b, a uint32) { return img0.YCbCrAt(x, y).RGBA() }
+		}
+		return func(x, y int) (r, g, b, a uint32) { return img.At(x, y).RGBA() }
+	}(imgr.imgDst)
+
 	// 配置
 	for y := minY; y < maxY; y++ {
 		for x := minX; x < maxX; x++ {
@@ -38,7 +50,7 @@ func (imgr ImageReader) Set(delta Pos) {
 			const rate = float64(256) / float64(65536)
 
 			// 色を取得
-			r, g, b, _ := imgr.imgDst.RGBAAt(x, y).RGBA()
+			r, g, b, _ := RGBAfunc(x, y)
 
 			st = st.Background(tcell.NewRGBColor(
 				int32(float64(r)*rate),
@@ -59,12 +71,11 @@ func (imgr ImageReader) Set(delta Pos) {
 // Zoom zoom picture at put rate
 func (imgr *ImageReader) Zoom(rate float64) {
 
-	var w, h = float64(imgr.rctSrc.Dx()), float64(imgr.rctSrc.Dy())
+	var w, h = uint(rate * imgr.rate * 2 * float64(imgr.rctSrc.Dx())), uint(float64(imgr.rctSrc.Dy()) * rate * imgr.rate)
 
 	// 画像のサイズを変更
-	var imgDst *image.RGBA
-	imgDst = image.NewRGBA(image.Rect(0, 0, int(w*rate*imgr.rate*2), int(h*rate*imgr.rate)))
-	draw.CatmullRom.Scale(imgDst, imgDst.Bounds(), imgr.imgSrc, imgr.rctSrc, draw.Over, nil)
+	var imgDst image.Image
+	imgDst = resize.Resize(w, h, imgr.imgSrc, resize.NearestNeighbor)
 
 	imgr.imgDst = imgDst
 

@@ -9,7 +9,7 @@ import (
 type ImageReader struct {
 	Title  string
 	imgSrc image.Image
-	imgDst *image.RGBA
+	imgDst image.Image
 	rctSrc image.Rectangle
 	zoom   int
 	rate   float64
