@@ -75,7 +75,7 @@ func (imgr *ImageReader) Zoom(rate float64) {
 
 	// 画像のサイズを変更
 	var imgDst image.Image
-	imgDst = resize.Resize(w, h, imgr.imgSrc, resize.NearestNeighbor)
+	imgDst = resize.Resize(w, h, imgr.imgSrc, resize.Bilinear)
 
 	imgr.imgDst = imgDst
 
