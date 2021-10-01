@@ -2,7 +2,7 @@
 ## 概要
 端末上で画像を表示するためのプログラム。
 
-![例](https://i.gyazo.com/7e182aaebdbcbd459f134c0e21c99947.gif)
+<img src="https://i.gyazo.com/7e182aaebdbcbd459f134c0e21c99947.gif" height="150"></img>
 
 ## 目次
 <!-- TOC -->
