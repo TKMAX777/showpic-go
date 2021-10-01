@@ -48,13 +48,14 @@ GOBINにパスが通っている必要があります。
 - GOBINを設定していない場合
 
 ```sh
-export PATH=$GOPATH/bin:$PATH
+export PATH=`go env GOPATH`/bin:$PATH
+
 ```
 
 - GOBINを設定している場合
 
 ```sh
-export PATH=$GOBIN/bin:$PATH
+export PATH=`go env GOBIN`:$PATH
 ```
 
 ### 発色がおかしい
