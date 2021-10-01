@@ -7,7 +7,7 @@
 ## 目次
 <!-- TOC -->
 
-- [Go TLI Pic](#go-tli-pic)
+- [Showpic-go](#showpic-go)
     - [概要](#概要)
     - [目次](#目次)
     - [Install](#install)
