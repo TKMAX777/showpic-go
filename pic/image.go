@@ -6,6 +6,8 @@ import (
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+	"runtime"
+	"sync"
 
 	_ "golang.org/x/image/tiff"
 	_ "golang.org/x/image/webp"
@@ -40,29 +42,61 @@ func (imgr ImageReader) Set(delta Pos) {
 		return func(x, y int) (r, g, b, a uint32) { return img.At(x, y).RGBA() }
 	}(imgr.imgDst)
 
-	// 配置
-	for y := minY; y < maxY; y++ {
-		for x := minX; x < maxX; x++ {
-			// 色をつけるオブジェクトの作成
-			var st = tcell.StyleDefault
+	var setFunc = func(fromY, toY int) {
+		// 配置
+		for y := fromY; y < toY; y++ {
+			for x := minX; x < maxX; x++ {
+				// 色をつけるオブジェクトの作成
+				var st = tcell.StyleDefault
 
-			// 16bitから24bitに変換
-			const rate = float64(256) / float64(65536)
+				// 16bitから24bitに変換
+				const rate = float64(256) / float64(65536)
 
-			// 色を取得
-			r, g, b, _ := RGBAfunc(x, y)
+				// 色を取得
+				r, g, b, _ := RGBAfunc(x, y)
 
-			st = st.Background(tcell.NewRGBColor(
-				int32(float64(r)*rate),
-				int32(float64(g)*rate),
-				int32(float64(b)*rate),
-			))
+				st = st.Background(
+					tcell.NewRGBColor(
+						int32(float64(r)*rate),
+						int32(float64(g)*rate),
+						int32(float64(b)*rate),
+					),
+				)
 
-			var X = (width-maxX+minX)/2 + x + delta.X
-			var Y = (height-maxY+minY)/2 + y + delta.Y + titleDel
+				var X = (width-maxX+minX)/2 + x + delta.X
+				var Y = (height-maxY+minY)/2 + y + delta.Y + titleDel
 
-			Screen.SetContent(X, Y, ' ', nil, st)
+				Screen.SetContent(X, Y, ' ', nil, st)
+			}
 		}
+	}
+
+	{
+		// 並列処理
+		var cpus = runtime.NumCPU()
+		var wg sync.WaitGroup
+
+		var rest = (maxY - minY) % cpus
+		var fromY, toY = minY, 0
+
+		for i := 0; i < cpus; i++ {
+			if rest > 0 {
+				toY = fromY + (maxY-minY)/cpus + 1
+				rest--
+			} else {
+				toY = fromY + (maxY-minY)/cpus
+			}
+
+			wg.Add(1)
+			go func(fromY, toY int) {
+				defer wg.Done()
+				setFunc(fromY, toY)
+			}(fromY, toY)
+
+			fromY = toY
+		}
+
+		wg.Wait()
 	}
 
 	return

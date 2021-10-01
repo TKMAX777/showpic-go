@@ -36,7 +36,14 @@ func main() {
 					Screen.Fini()
 					os.Exit(0)
 				default:
-					KeyEvent <- ev
+					switch ev.Rune() {
+					case 'q':
+						// 終了
+						Screen.Fini()
+						os.Exit(0)
+					default:
+						KeyEvent <- ev
+					}
 				}
 			case *tcell.EventResize:
 				Screen.Sync()
@@ -119,8 +126,8 @@ Arg:
 		}
 
 		// 描画
-		imgr.Set(delta)
 		imgr.SetTitle(ZoomRate)
+		imgr.Set(delta)
 
 		Screen.Show()
 

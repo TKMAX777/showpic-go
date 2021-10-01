@@ -16,6 +16,8 @@ var PutRow = 0
 
 // Init initialize screen
 func Init() {
+	os.Setenv("TERM", "xterm-256color")
+
 	var err error
 	// TLI画面の生成
 	Screen, err = tcell.NewScreen()
@@ -33,8 +35,6 @@ func Init() {
 		Background(tcell.ColorWhite),
 	)
 	Screen.Clear()
-
-	os.Setenv("TERM", "xterm-256color")
 
 	return
 }
