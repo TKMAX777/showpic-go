@@ -1,4 +1,4 @@
-module github.com/TKMAX777/go-clipic/pic
+module github.com/TKMAX777/go-clipic
 
 go 1.17
 

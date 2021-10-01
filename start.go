@@ -1,4 +1,4 @@
-package main
+package pic
 
 import (
 	"flag"
@@ -19,7 +19,7 @@ func init() {
 
 }
 
-func main() {
+func Do() {
 	defer Screen.Fini()
 
 	// チャネルの生成
